@@ -95,7 +95,8 @@ def getProx(DNSName, user, password, port, csv_filename=None):
             
 
 
-    if csv:
+    if csv_filename:
+
 
         max_disks = 0
         max_ips = 0
