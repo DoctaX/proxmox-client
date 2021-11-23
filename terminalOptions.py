@@ -14,8 +14,12 @@ parser.add_argument('-pwd', '--password', type=str, metavar='', required=True,
 parser.add_argument('-p', '--port', type=int, metavar='', required=True,
                     help='The port that connection will be made to\n')
 
+parser.add_argument('-c', '--csv', 
+                    help='Export a csv to this location\n')
+
+
 parser.print_help()
 
 args = parser.parse_args()
 
-getProx(args.dnsname, args.username, args.password, args.port)
+getProx(args.dnsname, args.username, args.password, args.port, args.csv)
