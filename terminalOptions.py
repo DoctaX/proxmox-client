@@ -15,7 +15,7 @@ parser.add_argument('-p', '--port', type=int, metavar='', required=True,
                     help='The port that connection will be made to\n')
 
 parser.add_argument('-c', '--csv', 
-                    help='Export a csv to this location\n')
+                    help='Export data as a csv to this location\n')
 
 
 parser.print_help()

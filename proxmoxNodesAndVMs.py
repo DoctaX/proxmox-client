@@ -1,10 +1,10 @@
 from proxmoxer import ProxmoxAPI
+from helperFunctions import _get_param, _extract_ip_from_agent
 import yaml
 import csv
 
 
 def getProx(DNSName, user, password, port, csv_filename=None):
-
     # 'pmx.nsis-au.nxcrd.net', user='cajaje@pve', password='c@6Un8r1T', port=443
     hosts = []
     children = {}
@@ -37,7 +37,6 @@ def getProx(DNSName, user, password, port, csv_filename=None):
             except:
                 pass
 
-
             childrenTemp.append(vm['name'] + dotFQDN)
             hosts.append(vm['name'] + dotFQDN)
 
@@ -48,61 +47,14 @@ def getProx(DNSName, user, password, port, csv_filename=None):
     temp['hosts'] = hosts
     temp['children'] = children
     finalDict['all'] = temp
-
-    def _strtodict(data):
-        rtn = {}
-        chunks = data.split(',')
-        for chunk in chunks:
-            if '=' not in chunk:
-                continue
-            key, value = chunk.split('=')
-            rtn[key] = value
-        return rtn
-
-    def _get_vlan(str):
-        opts = _strtodict(str)
-        if "tag" in opts:
-            return opts["tag"]
-        return 
-
-    def _get_ip(str):
-        opts = _strtodict(str)
-        if "ip" in opts:
-            return opts["ip"].replace("/24", "")
-
-    def _get_disksize(str):
-        opts = _strtodict(str)
-        if "size" in opts:
-            return opts["size"]
-
-    def _extract_ip_from_agent(agentdata, csvdata):
-        if not "result" in agentdata:
-            return
-        
-        if len(agentdata["result"]) == 0:
-            return
-        
-        for result in agentdata["result"]:
-            if not "ip-addresses" in result:
-                continue
-            
-            for ipdata in result["ip-addresses"]:
-                if ipdata["ip-address-type"] != "ipv4" or ipdata["ip-address"] == "127.0.0.1":
-                    continue
-                
-                if ipdata["ip-address"] not in csvdata:
-                    csvdata.append(ipdata["ip-address"])
-            
-
+    rows = []
 
     if csv_filename:
-
 
         max_disks = 0
         max_ips = 0
         max_vlans = 0
 
-        rows = []
         for vm, data in vm_data.items():
             vmdata = data['vm']
             vmconfig = data['config']
@@ -122,24 +74,22 @@ def getProx(DNSName, user, password, port, csv_filename=None):
                     if iterchunk in vmconfig:
 
                         if chunk == 'net':
-                            tmp = _get_vlan(vmconfig[iterchunk])
+                            tmp = _get_param(vmconfig[iterchunk], "tag")
                             if tmp:
-                                 csvdata['vlan'].append(tmp)
-                        
+                                csvdata['vlan'].append(tmp)
+
                         if chunk == 'ipconfig':
-                            tmp = _get_ip(vmconfig[iterchunk])
+                            tmp = _get_param(vmconfig[iterchunk], "ip")
                             if tmp:
                                 csvdata['ip'].append(tmp)
-                            
+
                             if 'network-agent' in data and data['network-agent']:
                                 _extract_ip_from_agent(data['network-agent'], csvdata['ip'])
-                        
 
-                        if chunk in ('scsi','virtio'):
-                            tmp = _get_disksize(vmconfig[iterchunk])
+                        if chunk in ('scsi', 'virtio'):
+                            tmp = _get_param(vmconfig[iterchunk], "size")
                             if tmp:
-                                 csvdata['disk'].append(tmp)
-                        
+                                csvdata['disk'].append(tmp)
 
             max_disks = max(len(csvdata['disk']), max_disks)
             max_ips = max(len(csvdata['ip']), max_ips)
@@ -147,10 +97,9 @@ def getProx(DNSName, user, password, port, csv_filename=None):
 
             rows.append(csvdata)
 
-
         for row in rows:
             for idx in range(max_disks):
-                counter = idx+1
+                counter = idx + 1
                 if counter > len(row['disk']) or not row['disk']:
                     row[f'disk{counter}'] = ''
                     continue
@@ -159,7 +108,7 @@ def getProx(DNSName, user, password, port, csv_filename=None):
             del row['disk']
 
             for idx in range(max_ips):
-                counter = idx+1
+                counter = idx + 1
                 if counter > len(row['ip']) or not row['ip']:
                     row[f'ip{counter}'] = ''
                     continue
@@ -168,7 +117,7 @@ def getProx(DNSName, user, password, port, csv_filename=None):
             del row['ip']
 
             for idx in range(max_vlans):
-                counter = idx+1
+                counter = idx + 1
                 if counter > len(row['vlan']) or not row['vlan']:
                     row[f'vlan{counter}'] = ''
                     continue
@@ -176,20 +125,17 @@ def getProx(DNSName, user, password, port, csv_filename=None):
                 row[f'vlan{counter}'] = row['vlan'][idx]
             del row['vlan']
 
-        with open(csv_filename, 'w') as csvfile: 
-            writer = csv.DictWriter(csvfile, fieldnames=rows[0].keys())
+        with open(csv_filename, 'w') as csvfile:
+            # writer = csv.DictWriter(csvfile, fieldnames=rows[0].keys())
+            writer = csv.DictWriter(csvfile, fieldnames=rows[0])
             writer.writeheader()
             for row in rows:
                 writer.writerow(row)
 
         return
 
-
     # Convert above dictionary into YAML
     proxYAML = yaml.dump(finalDict, sort_keys=False)
 
-    print(proxYAML)
 
-
-# getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443)
-
+getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test3.csv")
