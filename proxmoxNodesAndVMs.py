@@ -142,5 +142,4 @@ def getProx(DNSName, user, password, port, csv_filename=None):
     # Convert above dictionary into YAML
     proxYAML = yaml.dump(finalDict, sort_keys=False)
 
-
 getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test7.csv")
