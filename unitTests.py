@@ -1,5 +1,4 @@
 import unittest
-from proxmoxNodesAndVMs import getProx
 from helperFunctions import _get_param, _get_vlan, _get_ip, _get_disksize
 
 

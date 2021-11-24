@@ -125,12 +125,17 @@ def getProx(DNSName, user, password, port, csv_filename=None):
                 row[f'vlan{counter}'] = row['vlan'][idx]
             del row['vlan']
 
-        # with open(csv_filename, 'w') as csvfile:
-        #     # writer = csv.DictWriter(csvfile, fieldnames=rows[0].keys())
-        #     writer = csv.DictWriter(csvfile, fieldnames=rows[0].keys())
-        #     writer.writeheader()
-        #     for row in rows:
-        #         writer.writerow(row)
+        with open(csv_filename, 'w') as csvfile:
+            # writer = csv.DictWriter(csvfile, fieldnames=rows[0].keys())
+            keys = []
+
+            for key in rows[0].keys():
+                keys.append(key)
+
+            writer = csv.DictWriter(csvfile, fieldnames=keys)
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(row)
 
         return
 
@@ -138,4 +143,4 @@ def getProx(DNSName, user, password, port, csv_filename=None):
     proxYAML = yaml.dump(finalDict, sort_keys=False)
 
 
-getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test5.csv")
+getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test7.csv")

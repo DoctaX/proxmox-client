@@ -31,18 +31,6 @@ def _get_disksize(str):
         return opts['size']
 
 
-###### _get_vlan test cases ######
-# test: virtio=3A:53:6F:41:21:78,bridge=vmbr0,firewall=1,tag=1616 |||| equals: 1616
-# test: virtio=52:DA:C3:E4:40:18,bridge=vmbr0,firewall=1,tag=68 |||| equals: 68
-
-###### _get_ip test cases ######
-# test: ip=10.10.132.101/24,gw=10.10.132.1 |||| equals: 10.10.132.101
-# test: ip=10.10.128.221/8,gw=10.10.128.1 |||| equals: 10.10.128.221
-
-###### _get_disksize test cases ######
-# test:  VM_Data:vm-107-disk-0,size=64G |||| equals: 64G
-# test: /dev/disk/by-id/scsi-35000c50063229fcb,size=3907018584K |||| equals: 3907018584K
-
 def _get_param(str, attr):
     opts = _strtodict(str)
 
