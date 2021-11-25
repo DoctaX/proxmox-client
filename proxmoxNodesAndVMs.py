@@ -109,16 +109,25 @@ def dataToCSV(csv_filename, vm_data):
             row[f'vlan{counter}'] = row['vlan'][idx]
         del row['vlan']
 
-    if not os.path.exists('\\'.join(csv_filename.split('\\')[0:len(csv_filename) - 1])):
+    ### Current issue: Not able to splice the csv_filename after splitting it into a list
+    ### Aim: Splice off the .csv file from the path to check that the directory exists
+    ### In the case that the directory exists but not the file, this will allow for the creation of the file
+    length = len(csv_filename)
+    csv_filename = csv_filename.split('\\')[0: length - 1]
+    print(csv_filename)
+
+    if not os.path.exists('\\'.join(csv_filename)):
         print("This file path does not exist")
+        print('\\'.join(csv_filename))
+        return
 
-    else:
-        with open(csv_filename, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
-            writer.writeheader()
-            for row in rows:
-                writer.writerow(row)
+    with open(csv_filename, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
 
+    print("Data has been populated to", csv_filename)
     return
 
 
