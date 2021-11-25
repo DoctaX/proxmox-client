@@ -1,6 +1,6 @@
 from proxmoxer import ProxmoxAPI
 from helperFunctions import _get_param, _extract_ip_from_agent
-import yaml
+import os
 import csv
 
 
@@ -34,7 +34,6 @@ def getProx(DNSName, user, password, port, csv_filename=None):
 
 
 def dataToCSV(csv_filename, vm_data):
-
     rows = []
     max_disks = 0
     max_ips = 0
@@ -110,14 +109,17 @@ def dataToCSV(csv_filename, vm_data):
             row[f'vlan{counter}'] = row['vlan'][idx]
         del row['vlan']
 
-    with open(csv_filename, 'w') as csvfile:
+    if not os.path.exists('\\'.join(csv_filename.split('\\')[0:len(csv_filename) - 1])):
+        print("This file path does not exist")
 
-        writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
+    else:
+        with open(csv_filename, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(row)
 
     return
 
 
-getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test10.csv")
+getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test14.csv")
