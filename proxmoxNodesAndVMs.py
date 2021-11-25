@@ -6,10 +6,6 @@ import csv
 
 def getProx(DNSName, user, password, port, csv_filename=None):
     # 'pmx.nsis-au.nxcrd.net', user='cajaje@pve', password='c@6Un8r1T', port=443
-    hosts = []
-    children = {}
-    finalDict = {}
-    temp = {}
 
     vm_data = {}
 
@@ -19,10 +15,6 @@ def getProx(DNSName, user, password, port, csv_filename=None):
 
     # Iterate through each node in Proxmox cluster
     for node in nodes.get():
-        dotFQDN = "." + nodes(node['node']).get('dns')['search']
-        hosts.append(node['id'] + dotFQDN)
-        childrenTemp = []
-        hostsTemp = {}
 
         # Iterate through each VM in each node
         for vm in nodes(node['node']).get('qemu'):
@@ -37,109 +29,95 @@ def getProx(DNSName, user, password, port, csv_filename=None):
             except:
                 pass
 
-            childrenTemp.append(vm['name'] + dotFQDN)
-            hosts.append(vm['name'] + dotFQDN)
+    if csv_filename != '':
+        dataToCSV(csv_filename, vm_data)
 
-        hostsTemp['hosts'] = childrenTemp
-        children[node['id']] = hostsTemp
 
-    # Converge all data gathered in the nested-for-loop into a Python Dictionary
-    temp['hosts'] = hosts
-    temp['children'] = children
-    finalDict['all'] = temp
+def dataToCSV(csv_filename, vm_data):
+
     rows = []
+    max_disks = 0
+    max_ips = 0
+    max_vlans = 0
 
-    if csv_filename:
+    for vm, data in vm_data.items():
+        vmdata = data['vm']
+        vmconfig = data['config']
+        csvdata = {
+            'name': vm,
+            'status': vmdata['status'],
+            'cpus': vmdata['cpus'],
+            'memory': vmconfig['memory'],
+            'vlan': [],
+            'ip': [],
+            'disk': [],
+        }
 
-        max_disks = 0
-        max_ips = 0
-        max_vlans = 0
+        for chunk in ['net', 'scsi', 'ipconfig', 'virtio']:
+            for iter in range(5):
+                iterchunk = f"{chunk}{iter}"
+                if iterchunk in vmconfig:
 
-        for vm, data in vm_data.items():
-            vmdata = data['vm']
-            vmconfig = data['config']
-            csvdata = {
-                'name': vm,
-                'status': vmdata['status'],
-                'cpus': vmdata['cpus'],
-                'memory': vmconfig['memory'],
-                'vlan': [],
-                'ip': [],
-                'disk': [],
-            }
+                    if chunk == 'net':
+                        tmp = _get_param(vmconfig[iterchunk], "tag")
+                        if tmp:
+                            csvdata['vlan'].append(tmp)
 
-            for chunk in ['net', 'scsi', 'ipconfig', 'virtio']:
-                for iter in range(5):
-                    iterchunk = f"{chunk}{iter}"
-                    if iterchunk in vmconfig:
+                    if chunk == 'ipconfig':
+                        tmp = _get_param(vmconfig[iterchunk], "ip")
+                        if tmp:
+                            csvdata['ip'].append(tmp)
 
-                        if chunk == 'net':
-                            tmp = _get_param(vmconfig[iterchunk], "tag")
-                            if tmp:
-                                csvdata['vlan'].append(tmp)
+                        if 'network-agent' in data and data['network-agent']:
+                            _extract_ip_from_agent(data['network-agent'], csvdata['ip'])
 
-                        if chunk == 'ipconfig':
-                            tmp = _get_param(vmconfig[iterchunk], "ip")
-                            if tmp:
-                                csvdata['ip'].append(tmp)
+                    if chunk in ('scsi', 'virtio'):
+                        tmp = _get_param(vmconfig[iterchunk], "size")
+                        if tmp:
+                            csvdata['disk'].append(tmp)
 
-                            if 'network-agent' in data and data['network-agent']:
-                                _extract_ip_from_agent(data['network-agent'], csvdata['ip'])
+        max_disks = max(len(csvdata['disk']), max_disks)
+        max_ips = max(len(csvdata['ip']), max_ips)
+        max_vlans = max(len(csvdata['vlan']), max_vlans)
 
-                        if chunk in ('scsi', 'virtio'):
-                            tmp = _get_param(vmconfig[iterchunk], "size")
-                            if tmp:
-                                csvdata['disk'].append(tmp)
+        rows.append(csvdata)
 
-            max_disks = max(len(csvdata['disk']), max_disks)
-            max_ips = max(len(csvdata['ip']), max_ips)
-            max_vlans = max(len(csvdata['vlan']), max_vlans)
+    for row in rows:
+        for idx in range(max_disks):
+            counter = idx + 1
+            if counter > len(row['disk']) or not row['disk']:
+                row[f'disk{counter}'] = ''
+                continue
 
-            rows.append(csvdata)
+            row[f'disk{counter}'] = row['disk'][idx]
+        del row['disk']
 
+        for idx in range(max_ips):
+            counter = idx + 1
+            if counter > len(row['ip']) or not row['ip']:
+                row[f'ip{counter}'] = ''
+                continue
+
+            row[f'ip{counter}'] = row['ip'][idx]
+        del row['ip']
+
+        for idx in range(max_vlans):
+            counter = idx + 1
+            if counter > len(row['vlan']) or not row['vlan']:
+                row[f'vlan{counter}'] = ''
+                continue
+
+            row[f'vlan{counter}'] = row['vlan'][idx]
+        del row['vlan']
+
+    with open(csv_filename, 'w') as csvfile:
+
+        writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
+        writer.writeheader()
         for row in rows:
-            for idx in range(max_disks):
-                counter = idx + 1
-                if counter > len(row['disk']) or not row['disk']:
-                    row[f'disk{counter}'] = ''
-                    continue
+            writer.writerow(row)
 
-                row[f'disk{counter}'] = row['disk'][idx]
-            del row['disk']
+    return
 
-            for idx in range(max_ips):
-                counter = idx + 1
-                if counter > len(row['ip']) or not row['ip']:
-                    row[f'ip{counter}'] = ''
-                    continue
 
-                row[f'ip{counter}'] = row['ip'][idx]
-            del row['ip']
-
-            for idx in range(max_vlans):
-                counter = idx + 1
-                if counter > len(row['vlan']) or not row['vlan']:
-                    row[f'vlan{counter}'] = ''
-                    continue
-
-                row[f'vlan{counter}'] = row['vlan'][idx]
-            del row['vlan']
-
-        with open(csv_filename, 'w') as csvfile:
-            # writer = csv.DictWriter(csvfile, fieldnames=rows[0].keys())
-            keys = []
-
-            for key in rows[0].keys():
-                keys.append(key)
-
-            writer = csv.DictWriter(csvfile, fieldnames=keys)
-            writer.writeheader()
-            for row in rows:
-                writer.writerow(row)
-
-        return
-
-    # Convert above dictionary into YAML
-    proxYAML = yaml.dump(finalDict, sort_keys=False)
-
-getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test7.csv")
+getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test10.csv")
