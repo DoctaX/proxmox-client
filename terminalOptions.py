@@ -13,10 +13,8 @@ parser.add_argument('-pwd', '--password', type=str, metavar='', required=True,
                     help='Password credentials to authenticate user\n')
 parser.add_argument('-p', '--port', type=int, metavar='', required=True,
                     help='The port that connection will be made to\n')
-
-parser.add_argument('-c', '--csv', 
+parser.add_argument('-c', '--csv', type=str, metavar='', required=False,
                     help='Export data as a csv to this location\n')
-
 
 parser.print_help()
 
