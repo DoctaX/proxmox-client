@@ -31,6 +31,7 @@ def getProx(DNSName, user, password, port, csv_filename=None):
 
     if csv_filename != '':
         dataToCSV(csv_filename, vm_data)
+        return
 
 
 def dataToCSV(csv_filename, vm_data):
@@ -109,16 +110,11 @@ def dataToCSV(csv_filename, vm_data):
             row[f'vlan{counter}'] = row['vlan'][idx]
         del row['vlan']
 
-    ### Current issue: Not able to splice the csv_filename after splitting it into a list
-    ### Aim: Splice off the .csv file from the path to check that the directory exists
-    ### In the case that the directory exists but not the file, this will allow for the creation of the file
-    length = len(csv_filename)
-    csv_filename = csv_filename.split('\\')[0: length - 1]
-    print(csv_filename)
+    length = len(csv_filename.split('\\'))
+    file_path = '\\'.join(csv_filename.split('\\')[0: length-1])
 
-    if not os.path.exists('\\'.join(csv_filename)):
+    if len(file_path) == 3 or len(file_path) == 2 or not os.path.exists(file_path):
         print("This file path does not exist")
-        print('\\'.join(csv_filename))
         return
 
     with open(csv_filename, 'w') as csvfile:
@@ -131,4 +127,4 @@ def dataToCSV(csv_filename, vm_data):
     return
 
 
-getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test14.csv")
+getProx('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test17.csv")
