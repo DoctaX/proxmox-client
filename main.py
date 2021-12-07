@@ -4,8 +4,9 @@ from proxmoxNodesAndVMs import proxmoxData
 
 class terminal:
     def main(self):
-        parser = argparse.ArgumentParser(description='_______________/\/\/\/\/\/\/\/\ This script retrieves an inventory and metadata of nodes '
-                                                     'and vm\'s in a Proxmox cluster /\/\/\/\/\/\/\/\\_______________')
+        parser = argparse.ArgumentParser(
+            description='___________/\/\/\/\/\/\/\ This script retrieves an inventory and metadata of nodes '
+                        'and vm\'s in a Proxmox cluster /\/\/\/\/\/\/\\___________')
         parser.add_argument('-dns', '--dnsname', type=str, metavar='', required=True,
                             help='The Subject Alternate Name or DNS Name of the host/cluster (can be retrieved '
                                  'from certificate under \'Subject Alternate Name\')')

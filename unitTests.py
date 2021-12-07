@@ -1,5 +1,6 @@
 import unittest
 from helperFunctions import _get_param, _get_vlan, _get_ip, _get_disksize
+from proxmoxNodesAndVMs import proxmoxData
 
 
 class testProxFunctions(unittest.TestCase):
@@ -30,6 +31,11 @@ class testProxFunctions(unittest.TestCase):
         disksize_test2 = '/dev/disk/by-id/scsi-35000c50063229fcb,size=3907018584K'
         assert _get_param(disksize_test2, 'size') == '3907018584K'
         assert _get_disksize(disksize_test2) == _get_param(disksize_test2, 'size')
+
+    def test(self):
+        test = proxmoxData()
+        test.getProx(2, 2, 2, 2)
+
 
 
 if __name__ == '__main__':
