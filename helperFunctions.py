@@ -94,7 +94,7 @@ def list_to_column(rows, max_disks, max_ips, max_vlans):
     return rows
 
 
-def isValid(csv_filepath):
+def is_valid_path(csv_filepath):
     if csv_filepath != string.whitespace and csv_filepath is not None:
         try:
             full_path = Path(csv_filepath)

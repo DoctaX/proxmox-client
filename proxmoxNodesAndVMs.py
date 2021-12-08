@@ -2,7 +2,6 @@ from proxmoxer import ProxmoxAPI
 from helperFunctions import _get_param, _extract_ip_from_agent, list_to_column
 from pathlib import Path
 import csv
-import string
 
 
 class prox:
@@ -44,12 +43,12 @@ class prox:
 
     def format_CSV(self, vmList):
         rows = []
-        max_disks = 0
         max_ips = 0
+        max_disks = 0
         max_vlans = 0
 
-        for idx, vm in enumerate(vmList):
-            vmconfig = vmList[idx]['config']
+        for vm in vmList:
+            vmconfig = vm['config']
             csvdata = {
                 'name': vm['name'],
                 'status': vm['status'],
@@ -86,8 +85,23 @@ class prox:
             max_disks = max(len(csvdata['disk']), max_disks)
             max_ips = max(len(csvdata['ip']), max_ips)
             max_vlans = max(len(csvdata['vlan']), max_vlans)
+            print(csvdata)
             rows.append(csvdata)
-            print(rows)
+
+        return rows, max_disks, max_ips, max_vlans
+
+    def output_to_file(self, csv_filename, rows):
+        full_path = Path(csv_filename)
+        parent_path = full_path.parents[0]
+
+        with open(csv_filename, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(row)
+
+        print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
+        return
 
     def proxYAML(self, nodes, vms, all):
         x = None
@@ -133,84 +147,4 @@ class prox:
         #
         # print("No CSV file was passed")
 
-    def data_processing(self, csv_filename, vm_data):
-        rows = []
-        max_disks = 0
-        max_ips = 0
-        max_vlans = 0
 
-        for vm, data in vm_data.items():
-            vmdata = data['vm']
-            vmconfig = data['config']
-            csvdata = {
-                'name': vm,
-                'status': vmdata['status'],
-                'cpus': vmdata['cpus'],
-                'memory': vmconfig['memory'],
-                'vlan': [],
-                'ip': [],
-                'disk': [],
-            }
-
-            for chunk in ['net', 'scsi', 'ipconfig', 'virtio']:
-                for iter in range(5):
-                    iterchunk = f"{chunk}{iter}"
-                    if iterchunk in vmconfig:
-
-                        if chunk == 'net':
-                            tmp = _get_param(vmconfig[iterchunk], "tag")
-                            if tmp:
-                                csvdata['vlan'].append(tmp)
-
-                        if chunk == 'ipconfig':
-                            tmp = _get_param(vmconfig[iterchunk], "ip")
-                            if tmp:
-                                csvdata['ip'].append(tmp)
-
-                            if 'network-agent' in data and data['network-agent']:
-                                _extract_ip_from_agent(data['network-agent'], csvdata['ip'])
-
-                        if chunk in ('scsi', 'virtio'):
-                            tmp = _get_param(vmconfig[iterchunk], "size")
-                            if tmp:
-                                csvdata['disk'].append(tmp)
-
-            max_disks = max(len(csvdata['disk']), max_disks)
-            max_ips = max(len(csvdata['ip']), max_ips)
-            max_vlans = max(len(csvdata['vlan']), max_vlans)
-            rows.append(csvdata)
-
-        rows = list_to_column(rows, max_disks, max_ips, max_vlans)
-
-        passValues = prox()
-        passValues.output_to_file(csv_filename, rows)
-
-    def output_to_file(self, csv_filename, rows):
-        try:
-            full_path = Path(csv_filename)
-            parent_path = full_path.parents[0]
-
-        except FileNotFoundError:
-            print("This file path does not exist or is invalid")
-            return
-
-        if not parent_path.is_dir():
-            print("This file path does not exist")
-            return
-
-        with open(csv_filename, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
-            writer.writeheader()
-            for row in rows:
-                writer.writerow(row)
-
-        print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
-        return
-
-
-test = prox()
-test.connect('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test36.csv")
-nodes = test.get_nodes()
-vms = test.get_vms(nodes)
-
-test.format_CSV(vms)
