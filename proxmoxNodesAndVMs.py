@@ -1,13 +1,15 @@
 from proxmoxer import ProxmoxAPI
-from helperFunctions import _get_param, _extract_ip_from_agent, list_to_column
+from helperFunctions import _get_param, _extract_ip_from_agent
 from pathlib import Path
 import csv
+import string
+import operator
 
 
 class prox:
     _connection = None
 
-    def connect(self, DNSName, user, password, port, csv_filename=None):
+    def connect(self, DNSName, user, password, port):
 
         # Connect and authenticate to Proxmox server
         self._connection = ProxmoxAPI(DNSName, user=user, password=password, port=port)
@@ -38,7 +40,6 @@ class prox:
                 except Exception as e:
                     pass
                 vmList.append(vm)
-
         return vmList
 
     def format_CSV(self, vmList):
@@ -85,7 +86,6 @@ class prox:
             max_disks = max(len(csvdata['disk']), max_disks)
             max_ips = max(len(csvdata['ip']), max_ips)
             max_vlans = max(len(csvdata['vlan']), max_vlans)
-            print(csvdata)
             rows.append(csvdata)
 
         return rows, max_disks, max_ips, max_vlans
@@ -103,17 +103,78 @@ class prox:
         print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
         return
 
-    def proxYAML(self, nodes, vms, all):
-        x = None
-        ## YAML data gathering
-        # temp['hosts'], temp['children'] = hosts, children
-        # finalDict['all'] = temp
+    def list_to_column(self, rows, max_disks, max_ips, max_vlans):
+        for row in rows:
+            for idx in range(max_disks):
+                counter = idx + 1
+                if counter > len(row['disk']) or not row['disk']:
+                    row[f'disk{counter}'] = ''
+                    continue
 
-        # try:
-        #     agentdata = nodes(node['node']).qemu(vm['vmid']).agent.get('network-get-interfaces')
-        #     vm_data[vm['name']]['network-agent'] = agentdata
-        # except:
-        #     pass
+                row[f'disk{counter}'] = row['disk'][idx]
+            del row['disk']
+
+            for idx in range(max_ips):
+                counter = idx + 1
+                if counter > len(row['ip']) or not row['ip']:
+                    row[f'ip{counter}'] = ''
+                    continue
+
+                row[f'ip{counter}'] = row['ip'][idx]
+            del row['ip']
+
+            for idx in range(max_vlans):
+                counter = idx + 1
+                if counter > len(row['vlan']) or not row['vlan']:
+                    row[f'vlan{counter}'] = ''
+                    continue
+
+                row[f'vlan{counter}'] = row['vlan'][idx]
+            del row['vlan']
+        return rows
+
+    def is_valid_path(self, csv_filepath):
+        if csv_filepath != string.whitespace and csv_filepath is not None:
+            try:
+                full_path = Path(csv_filepath)
+                parent_path = full_path.parents[0]
+
+            except FileNotFoundError:
+                return False
+
+            except IndexError:
+                return False
+
+            if not parent_path.is_dir():
+                return False
+
+            return True
+        return False
+
+    def format_YAML(self, nodes, vms):
+
+        hosts = []
+        children = []
+        temp = {}
+        finalDict = {}
+        vms_organised = {}
+
+        for node in nodes:
+            vms_organised[node['node']] = []
+            for vm in vms:
+                if vm['nodename'] == node['node']:
+                    vms_organised[node['node']].append(vm['name'])
+
+        nodes = [node['node'] for node in nodes]
+        vms = [vm['name'] for vm in vms]
+
+        print(nodes, '\n--------------------------\n', vms)
+        finalDict['all'] = {
+            'hosts': [],
+            'children': {'node': {'hosts': []}}
+        }
+
+
 
         # for node in nodes.get():
         #     dotFQDN = "." + nodes(node['node']).get('dns')['search']
@@ -148,3 +209,8 @@ class prox:
         # print("No CSV file was passed")
 
 
+test = prox()
+test.connect('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443)
+nodes = test.get_nodes()
+vms = test.get_vms(nodes)
+test.format_YAML(nodes, vms)
