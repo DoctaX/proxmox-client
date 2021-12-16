@@ -106,8 +106,9 @@ class prox:
             output["all"]["children"][node['node']] = {"hosts": {}}
 
         for vm in vms:
-            output["all"]["hosts"][vm["name"] + self._dotFQDN] = None
-            output["all"]["children"][vm["nodename"]]["hosts"][vm["name"] + self._dotFQDN] = None
+            if vm['template'] != 1:
+                output["all"]["hosts"][vm["name"] + self._dotFQDN] = None
+                output["all"]["children"][vm["nodename"]]["hosts"][vm["name"] + self._dotFQDN] = None
 
         return output
 
@@ -131,7 +132,7 @@ class prox:
         yamlstring = yaml.dump(data)
         yamlstring = yamlstring.replace(": null", ":")
 
-        with open(yaml_filename, 'w') as yamlfile:            
+        with open(yaml_filename, 'w') as yamlfile:
             yamlfile.write(yamlstring)
             yamlfile.close()
 
@@ -185,4 +186,3 @@ class prox:
 
             return True
         return False
-
