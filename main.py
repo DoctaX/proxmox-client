@@ -18,7 +18,7 @@ def main():
     parser.add_argument('-pwd <PASSWORD>', '--password', type=str, metavar='', required=True,
                         help='Password credentials to authenticate user')
 
-    parser.add_argument('-port <PORT>', '--port', type=int, metavar='', required=True,
+    parser.add_argument('-port <PORT>', '--port', type=int, metavar='', default=443,
                         help='The port that connection will be made to')
 
     parser.add_argument('-s', '--skipSSL', action='store_true', required=False,
@@ -30,8 +30,11 @@ def main():
     parser.add_argument('-fp <FILE-PATH>', '--filepath', type=str, metavar='', required=True,
                         help='Specify the full path of the file you want to export the data to')
 
-    args = parser.parse_args()
-    logic(args.dnsname, args.username, args.password, args.port, args.filetype, args.filepath, args.skipSSL)
+    try:
+        args = parser.parse_args()
+        logic(args.dnsname, args.username, args.password, args.port, args.filetype, args.filepath, args.skipSSL)
+    except SystemExit as e:
+        parser.print_help()
 
 
 main()

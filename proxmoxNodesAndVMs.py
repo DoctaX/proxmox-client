@@ -97,16 +97,17 @@ class prox:
 
     def format_YAML(self, nodes, vms):
 
-        output = {"all": {"hosts": [], "children": {}}}
+        output = {"all": {"hosts": {}, "children": {}}}
 
         for node in nodes:
             self._dotFQDN = "." + self._connection.nodes(node['node']).get('dns')['search']
 
-            output["all"]["hosts"].append(node['node'] + self._dotFQDN)
-            output["all"]["children"][node['node']] = {"hosts": []}
+            output["all"]["hosts"][node['node'] + self._dotFQDN] = None
+            output["all"]["children"][node['node']] = {"hosts": {}}
+
         for vm in vms:
-            output["all"]["hosts"].append(vm["name"] + self._dotFQDN)
-            output["all"]["children"][vm["nodename"]]["hosts"].append(vm["name"] + self._dotFQDN)
+            output["all"]["hosts"][vm["name"] + self._dotFQDN] = None
+            output["all"]["children"][vm["nodename"]]["hosts"][vm["name"] + self._dotFQDN] = None
 
         return output
 
@@ -127,8 +128,11 @@ class prox:
         full_path = Path(yaml_filename)
         parent_path = full_path.parents[0]
 
-        with open(yaml_filename, 'w') as yamlfile:
-            yaml.dump(data, yamlfile)
+        yamlstring = yaml.dump(data)
+        yamlstring = yamlstring.replace(": null", ":")
+
+        with open(yaml_filename, 'w') as yamlfile:            
+            yamlfile.write(yamlstring)
             yamlfile.close()
 
         print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
