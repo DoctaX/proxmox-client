@@ -2,29 +2,34 @@ from proxmoxer import ProxmoxAPI
 from helperFunctions import _get_param, _extract_ip_from_agent
 from pathlib import Path
 import csv
+import yaml
 import string
-import operator
 
 
 class prox:
     _connection = None
+    _dotFQDN = None
 
     def connect(self, DNSName, user, password, port):
 
         # Connect and authenticate to Proxmox server
         self._connection = ProxmoxAPI(DNSName, user=user, password=password, port=port)
 
+    def connect_no_SSL(self, DNSName, user, password, port):
+
+        # Connect and authenticate to Proxmox server
+        self._connection = ProxmoxAPI(DNSName, user=user, password=password, port=port, verify_ssl=False)
+
     def get_nodes(self):
+
         # Iterate through each node in Proxmox cluster
         nodesList = []
-
         for node in self._connection.nodes.get():
             nodesList.append(node)
-
         return nodesList
 
     def get_vms(self, nodes):
-        agent_data = None
+        # agent_data = None
         vmList = []
         for node in nodes:
             for vm in self._connection.nodes(node['node']).get('qemu'):
@@ -90,7 +95,22 @@ class prox:
 
         return rows, max_disks, max_ips, max_vlans
 
-    def output_to_file(self, csv_filename, rows):
+    def format_YAML(self, nodes, vms):
+
+        output = {"all": {"hosts": [], "children": {}}}
+
+        for node in nodes:
+            self._dotFQDN = "." + self._connection.nodes(node['node']).get('dns')['search']
+
+            output["all"]["hosts"].append(node['node'] + self._dotFQDN)
+            output["all"]["children"][node['node']] = {"hosts": []}
+        for vm in vms:
+            output["all"]["hosts"].append(vm["name"] + self._dotFQDN)
+            output["all"]["children"][vm["nodename"]]["hosts"].append(vm["name"] + self._dotFQDN)
+
+        return output
+
+    def output_to_CSV_file(self, csv_filename, rows):
         full_path = Path(csv_filename)
         parent_path = full_path.parents[0]
 
@@ -99,6 +119,17 @@ class prox:
             writer.writeheader()
             for row in rows:
                 writer.writerow(row)
+
+        print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
+        return
+
+    def output_to_YAML_file(self, data, yaml_filename):
+        full_path = Path(yaml_filename)
+        parent_path = full_path.parents[0]
+
+        with open(yaml_filename, 'w') as yamlfile:
+            yaml.dump(data, yamlfile)
+            yamlfile.close()
 
         print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
         return
@@ -151,66 +182,3 @@ class prox:
             return True
         return False
 
-    def format_YAML(self, nodes, vms):
-
-        hosts = []
-        children = []
-        temp = {}
-        finalDict = {}
-        vms_organised = {}
-
-        for node in nodes:
-            vms_organised[node['node']] = []
-            for vm in vms:
-                if vm['nodename'] == node['node']:
-                    vms_organised[node['node']].append(vm['name'])
-
-        nodes = [node['node'] for node in nodes]
-        vms = [vm['name'] for vm in vms]
-
-        print(nodes, '\n--------------------------\n', vms)
-        finalDict['all'] = {
-            'hosts': [],
-            'children': {'node': {'hosts': []}}
-        }
-
-
-
-        # for node in nodes.get():
-        #     dotFQDN = "." + nodes(node['node']).get('dns')['search']
-        #     hosts.append(node['id'] + dotFQDN)
-        #     childrenTemp = []
-        #     hostsTemp = {}
-        #
-        #     # Iterate through each VM in each node
-        #     for vm in nodes(node['node']).get('qemu'):
-        #         childrenTemp.append(vm['name'] + dotFQDN)
-        #         hosts.append(vm['name'] + dotFQDN)
-        #
-        #     hostsTemp['hosts'] = childrenTemp
-        #     children[node['id']] = hostsTemp
-        #
-        #     # Converge all data gathered in the nested-for-loop into a Python Dictionary
-        # temp['hosts'] = hosts
-        # temp['children'] = children
-        # finalDict['all'] = temp
-        #
-        # # Convert above dictionary into YAML
-        # proxYAML = yaml.dump(finalDict, sort_keys=False)
-        #
-        # print(proxYAML)
-
-        # print(finalDict)
-        # if csv_filename != string.whitespace and csv_filename is not None:
-        #     dataProcessing = proxmox()
-        #     dataProcessing.data_processing(csv_filename, vm_data)
-        #     return
-        #
-        # print("No CSV file was passed")
-
-
-test = prox()
-test.connect('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443)
-nodes = test.get_nodes()
-vms = test.get_vms(nodes)
-test.format_YAML(nodes, vms)
