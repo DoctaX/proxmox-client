@@ -15,10 +15,10 @@ def main():
     parser.add_argument('-user <USERNAME>', '--username', type=str, metavar='', required=True,
                         help='The Username that will be used to sign in with')
 
-    parser.add_argument('-pwd <PASSWORD>', '--password', type=str, metavar='', required=True,
-                        help='Password credentials to authenticate user')
+    # parser.add_argument('-pwd <PASSWORD>', '--password', type=str, metavar='', required=True, secure=True,
+    #                     help='Password credentials to authenticate user')
 
-    parser.add_argument('-port <PORT>', '--port', type=int, metavar='', default=443,
+    parser.add_argument('-port <PORT>', '--portnum', type=int, metavar='', default=443,
                         help='The port that connection will be made to')
 
     parser.add_argument('-s', '--skipSSL', action='store_true', required=False,
@@ -32,7 +32,9 @@ def main():
 
     try:
         args = parser.parse_args()
-        logic(args.dnsname, args.username, args.password, args.port, args.filetype, args.filepath, args.skipSSL)
+        # username = getpass.getuser()
+        # pwd = getpass.getpass()
+        logic(args.dnsname, args.username, args.portnum, args.filetype, args.filepath, args.skipSSL)
     except SystemExit as e:
         parser.print_help()
 

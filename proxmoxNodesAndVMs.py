@@ -4,11 +4,15 @@ from pathlib import Path
 import csv
 import yaml
 import string
+import getpass
 
 
 class prox:
     _connection = None
     _dotFQDN = None
+
+    def authenticate(self):
+        return getpass.getpass()
 
     def connect(self, DNSName, user, password, port):
 
@@ -111,7 +115,6 @@ class prox:
                 output["all"]["children"][vm["nodename"]]["hosts"][vm["name"] + self._dotFQDN] = None
 
         return output
-
 
     def output_to_CSV_file(self, csv_filename, rows):
         full_path = Path(csv_filename)
