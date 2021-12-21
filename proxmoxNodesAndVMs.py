@@ -9,7 +9,8 @@ import getpass
 
 class prox:
     _connection = None
-    _dotFQDN = None
+    _nodeFQDN = None
+    _vmFQDN = None
 
     def authenticate(self):
         return getpass.getpass()
@@ -58,6 +59,10 @@ class prox:
         max_vlans = 0
 
         for vm in vmList:
+
+            if vm['template'] == 1:
+                continue
+
             vmconfig = vm['config']
             csvdata = {
                 'name': vm['name'],
@@ -104,15 +109,21 @@ class prox:
         output = {"all": {"hosts": {}, "children": {}}}
 
         for node in nodes:
-            self._dotFQDN = "." + self._connection.nodes(node['node']).get('dns')['search']
+            self._nodeFQDN = "." + self._connection.nodes(node['node']).get('dns')['search']
 
-            output["all"]["hosts"][node['node'] + self._dotFQDN] = None
-            output["all"]["children"][node['node']] = {"hosts": {}}
+            output["all"]["hosts"][node['node'] + self._nodeFQDN] = None
+            output["all"]["children"][node['node'] + self._nodeFQDN] = {"hosts": {}}
 
         for vm in vms:
+
+            try:
+                self._vmFQDN = "." + vm['config']['searchdomain']
+            except:
+                pass
+
             if vm['template'] != 1:
-                output["all"]["hosts"][vm["name"] + self._dotFQDN] = None
-                output["all"]["children"][vm["nodename"]]["hosts"][vm["name"] + self._dotFQDN] = None
+                output["all"]["hosts"][vm["name"]] = None
+                output["all"]["children"][vm["nodename"] + self._nodeFQDN]["hosts"][vm["name"] + self._vmFQDN] = None
 
         return output
 
@@ -120,13 +131,18 @@ class prox:
         full_path = Path(csv_filename)
         parent_path = full_path.parents[0]
 
-        with open(csv_filename, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
-            writer.writeheader()
-            for row in rows:
-                writer.writerow(row)
+        try:
+            with open(csv_filename, 'w') as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=[*rows[0]])
+                writer.writeheader()
 
-        print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
+                for row in rows:
+                    writer.writerow(row)
+
+                print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
+
+        except PermissionError as e:
+            print("Insufficient permissions to write to file:", str(parent_path) + '\\' + full_path.name)
         return
 
     def output_to_YAML_file(self, data, yaml_filename):

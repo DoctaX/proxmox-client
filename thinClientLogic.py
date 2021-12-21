@@ -1,7 +1,7 @@
 from proxmoxNodesAndVMs import prox
 
 
-def logic(dns, user, port, file_type, file_path, skipSSL):
+def logic(dns, user, pwd, port, file_type, file_path, skipSSL):
 
     instance = prox()
 
@@ -9,8 +9,9 @@ def logic(dns, user, port, file_type, file_path, skipSSL):
         print("The file path you have entered is not valid")
         return
 
-    pwd = instance.authenticate()
-    print(pwd)
+    if pwd is None:
+        pwd = instance.authenticate()
+
     if skipSSL:
         instance.connect_no_SSL(dns, user, pwd, port)
     else:
