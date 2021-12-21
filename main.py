@@ -33,6 +33,8 @@ def main():
     try:
         args = parser.parse_args()
         logic(args.dnsname, args.username, args.password, args.portnum, args.filetype, args.filepath, args.skipSSL)
+    except KeyboardInterrupt as k:
+        print("Process stopped")
     except SystemExit as e:
         parser.print_help()
 

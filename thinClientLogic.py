@@ -13,9 +13,9 @@ def logic(dns, user, pwd, port, file_type, file_path, skipSSL):
         pwd = instance.authenticate()
 
     if skipSSL:
-        instance.connect_no_SSL(dns, user, pwd, port)
+        instance.connect(dns, user, pwd, port, True)
     else:
-        instance.connect(dns, user, pwd, port)
+        instance.connect(dns, user, pwd, port, False)
 
     nodes = instance.get_nodes()
     vms = instance.get_vms(nodes)

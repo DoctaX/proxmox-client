@@ -15,15 +15,14 @@ class prox:
     def authenticate(self):
         return getpass.getpass()
 
-    def connect(self, DNSName, user, password, port):
+    def connect(self, DNSName, user, password, port, skip_ssl):
 
         # Connect and authenticate to Proxmox server
-        self._connection = ProxmoxAPI(DNSName, user=user, password=password, port=port)
+        if skip_ssl:
+            self._connection = ProxmoxAPI(DNSName, user=user, password=password, port=port, verify_ssl=False)
 
-    def connect_no_SSL(self, DNSName, user, password, port):
-
-        # Connect and authenticate to Proxmox server
-        self._connection = ProxmoxAPI(DNSName, user=user, password=password, port=port, verify_ssl=False)
+        else:
+            self._connection = ProxmoxAPI(DNSName, user=user, password=password, port=port)
 
     def get_nodes(self):
 
