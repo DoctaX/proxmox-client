@@ -1,9 +1,8 @@
-from proxmoxNodesAndVMs import prox
+from proxmox_nodes_and_vms import Prox
 
 
 def logic(dns, user, pwd, port, file_type, file_path, skipSSL):
-
-    instance = prox()
+    instance = Prox()
 
     if not instance.is_valid_path(file_path):
         print("The file path you have entered is not valid")
@@ -13,9 +12,12 @@ def logic(dns, user, pwd, port, file_type, file_path, skipSSL):
         pwd = instance.authenticate()
 
     if skipSSL:
-        instance.connect(dns, user, pwd, port, True)
+        rtn = instance.connect(dns, user, pwd, port, True)
     else:
-        instance.connect(dns, user, pwd, port, False)
+        rtn = instance.connect(dns, user, pwd, port, False)
+
+    if not rtn:
+        exit(1)
 
     nodes = instance.get_nodes()
     vms = instance.get_vms(nodes)
@@ -29,5 +31,3 @@ def logic(dns, user, pwd, port, file_type, file_path, skipSSL):
         data = instance.format_YAML(nodes, vms)
         instance.output_to_YAML_file(data, file_path)
     # instance.connect('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test42.csv")
-
-

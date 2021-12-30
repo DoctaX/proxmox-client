@@ -1,6 +1,6 @@
 import unittest
-from helperFunctions import _get_param, _get_vlan, _get_ip, _get_disksize
-from proxmoxNodesAndVMs import proxmoxData
+from helper_functions import _get_param, _get_vlan, _get_ip, _get_disksize
+from proxmox_nodes_and_vms import proxmoxData
 
 
 class testProxFunctions(unittest.TestCase):
