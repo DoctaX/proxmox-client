@@ -31,5 +31,6 @@ def logic(dns, user, pwd, port, file_type, file_path, skipSSL):
         data = instance.format_YAML(nodes, vms)
         instance.output_to_YAML_file(data, file_path)
 
+        test = 'test'
 
     # instance.connect('pmx.nsis-au.nxcrd.net', 'cajaje@pve', 'c@6Un8r1T', 443, "C:\\nothing_file\\test42.csv")
