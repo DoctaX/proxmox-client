@@ -16,12 +16,16 @@ This script can be used to connect to a proxmox instance to retrieve a range of 
 2. Navigate to the local cloned copy
 3. Copy the file path of **'main.py'**
 4. Open a command prompt and run this file (python \<copied file path\>) with relevant flags and arguments:
-   * -s Flag to skip SSL certificate checks
+   * -s Flag to skip SSL certificate checks **OPTIONAL**
    * -dns \<the url/hostname/IP address of target proxmox instance\> **REQUIRED**  
    * -user \<username of authorized user account\> **REQUIRED**  
    * -pwd \<password of authorized user account\> **REQUIRED**  
-   * -port \<the port that will be used to connect (443/8006)\> **REQUIRED**  
-   * -ft \<the output file type (CSV/YAML)\> **REQUIRED**  
+   * -port \<the port that will be used to connect\> **REQUIRED**  
+      * 443
+      * 8006
+   * -ft \<the output file type \> **REQUIRED**  
+      * csv
+      * yaml
    * -fp \<the output file path\> **REQUIRED**  
                
   
