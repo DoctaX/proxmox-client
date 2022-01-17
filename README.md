@@ -16,7 +16,7 @@ This script can be used to connect to a proxmox instance to retrieve a range of 
 2. Navigate to the local cloned copy
 3. Copy the file path of **'main.py'**
 4. Open a command prompt and run this file (python <copied file path>) with relevant flags and arguments
-  * -dns <the url/hostname/IP address of target proxmox instance **REQUIRED**  
+  * -dns <the url/hostname/IP address of target proxmox instance> **REQUIRED**  
   * -user <username of authorized user account> **REQUIRED**  
   * -pwd <password of authorized user account> **REQUIRED**  
   
