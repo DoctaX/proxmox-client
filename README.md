@@ -15,7 +15,7 @@ This script can be used to connect to a proxmox instance to retrieve a range of 
 1. Clone this repository
 2. Navigate to the local cloned copy
 3. Copy the file path of **'main.py'**
-4. Open a command prompt and run this file (python <copied file path>) with relevant flags and arguments:
+4. Open a command prompt and run this file (python \<copied file path\>) with relevant flags and arguments:
    * -s Flag to skip SSL certificate checks
    * -dns \<the url/hostname/IP address of target proxmox instance\> **REQUIRED**  
    * -user \<username of authorized user account\> **REQUIRED**  
