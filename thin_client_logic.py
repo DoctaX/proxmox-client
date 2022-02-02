@@ -22,12 +22,12 @@ def logic(dns, user, pwd, port, file_type, file_path, skipSSL):
     nodes = instance.get_nodes()
     vms = instance.get_vms(nodes)
 
-    if file_type == 'csv':
+    if file_type.lower() == 'csv':
         rows, max_disks, max_ips, max_vlans = instance.format_CSV(vms)
         rows = instance.list_to_column(rows, max_disks, max_ips, max_vlans)
         instance.output_to_CSV_file(file_path, rows)
 
-    elif file_type == 'yaml':
+    elif file_type.lower() == 'yaml':
         data = instance.format_YAML(nodes, vms)
         instance.output_to_YAML_file(data, file_path)
 
