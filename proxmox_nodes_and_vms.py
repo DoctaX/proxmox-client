@@ -125,10 +125,10 @@ class Prox:
             try:
                 self._vmFQDN = "." + vm['config']['searchdomain']
             except:
-                pass
+                self._vmFQDN = self._nodeFQDN
 
             if vm['template'] != 1:
-                output["all"]["hosts"][vm["name"]] = None
+                output["all"]["hosts"][vm["name"] + self._vmFQDN] = None
                 output["all"]["children"][vm["nodename"] + self._nodeFQDN]["hosts"][vm["name"] + self._vmFQDN] = None
 
         return output
@@ -148,6 +148,7 @@ class Prox:
                 print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
 
         except PermissionError as e:
+            print(e)
             print("Insufficient permissions to write to file:", str(parent_path) + '\\' + full_path.name)
         return
 
@@ -166,6 +167,7 @@ class Prox:
             print("\nData has been populated to:", str(parent_path) + '\\' + full_path.name)
 
         except PermissionError as p:
+            print(p)
             print("Insufficient permissions to write to file:", str(parent_path) + '\\' + full_path.name)
 
         return
