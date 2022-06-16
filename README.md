@@ -1,7 +1,7 @@
 
 # Proxmox (PVE) API Client
 
-I wanted a simple way to be able to pull down Proxmox node and vm metrics and so I wrote this CLI application using the Proxmoxer library which interfaces with the Proxmox API\n
+I wanted a simple way to be able to pull down Proxmox node and vm metrics and so I wrote this CLI application using the Proxmoxer library which interfaces with the Proxmox API<br>
 This script can be used to connect to a proxmox instance to retrieve a range of data regarding vm's
 
 ### Use cases
